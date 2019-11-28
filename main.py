@@ -13,7 +13,13 @@ if __name__ == '__main__':
     # image_stitcher.detect_keypoints_and_features()
     image_stitcher.calculate_homography_matrix()
 #     image_stitcher.wrap()
-    dst_warped = image_stitcher.warp_image_perspective(image_stitcher.h)
-    plt.figure(1)
-    plt.imshow(dst_warped)
-    plt.show()
+    dst_pad, warped = image_stitcher.warp_image_perspective(homography_mat)
+
+    alpha = 0.5
+    beta = 1 - alpha
+    blended = cv2.addWeighted(warped, alpha, dst_pad, beta, 1.0)
+    cv2.imshow("Blended Warped Image", blended)
+    cv2.waitKey(0)
+#     plt.figure(1)
+#     plt.imshow(dst_warped)
+#     plt.show()
