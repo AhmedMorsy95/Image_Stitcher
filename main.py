@@ -11,5 +11,9 @@ if __name__ == '__main__':
     # for the manual points it's required more than 4. However the more, the better.
     # image_stitcher.manually_collect_points(6)
     # image_stitcher.detect_keypoints_and_features()
-    image_stitcher.calculate_homography_matrix()
-    image_stitcher.wrap()
+    homography_mat = image_stitcher.calculate_homography_matrix()
+#     image_stitcher.wrap()
+    dst_warped = image_stitcher.warp_image_perspective(homography_mat)
+    plt.figure(1)
+    plt.imshow(dst_warped)
+    plt.show()
