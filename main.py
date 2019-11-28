@@ -18,8 +18,5 @@ if __name__ == '__main__':
     alpha = 0.5
     beta = 1 - alpha
     blended = cv2.addWeighted(warped, alpha, dst_pad, beta, 1.0)
-    cv2.imshow("Blended Warped Image", blended)
-    cv2.waitKey(0)
-#     plt.figure(1)
-#     plt.imshow(dst_warped)
-#     plt.show()
+    plt.imshow(blended)
+    plt.show()
