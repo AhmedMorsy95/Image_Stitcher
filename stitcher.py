@@ -105,3 +105,40 @@ class stitcher:
         result[0:self.image2.shape[0], 0:self.image2.shape[1]] = self.image2
         plt.imshow(result)
         plt.show()
+        
+    def warp_image_perspective(self, homography_mat):
+        src_h, src_w = self.image1.shape[:2] #640,480
+        lin_homg_pts = np.array([[0, src_w, src_w, 0], [0, 0, src_h, src_h], [1, 1, 1, 1]])
+        trans_lin_homg_pts = homography_mat.dot(lin_homg_pts)
+        trans_lin_homg_pts /= trans_lin_homg_pts[2, :]
+
+        minX = np.min(trans_lin_homg_pts[0, :])
+        minY = np.min(trans_lin_homg_pts[1, :])
+        maxX = np.max(trans_lin_homg_pts[0, :])
+        maxY = np.max(trans_lin_homg_pts[1, :])
+
+        dst_sz = list(self.image2.shape)
+
+        pad_sz = dst_sz.copy()  # to get the same number of channels
+
+        pad_sz[0] = np.round(np.maximum(dst_sz[0], maxY) - np.minimum(0, minY)).astype(int)
+        pad_sz[1] = np.round(np.maximum(dst_sz[1], maxX) - np.minimum(0, minX)).astype(int)
+        dst_pad = np.zeros(pad_sz, dtype=np.uint8)
+
+        # add translation to the transformation matrix to shift to positive values
+        anchorX, anchorY = 0, 0
+        transl_transf = np.eye(3, 3)
+        if minX < 0:
+            anchorX = np.round(-minX).astype(int)
+            transl_transf[0, 2] += anchorX
+        if minY < 0:
+            anchorY = np.round(-minY).astype(int)
+            transl_transf[1, 2] += anchorY
+        new_transf = transl_transf.dot(homography_mat)
+        new_transf /= new_transf[2, 2]
+
+        dst_pad[anchorY:anchorY + dst_sz[0], anchorX:anchorX + dst_sz[1]] = self.image2
+
+        # warped = cv2.warpPerspective(self.image2, new_transf, (pad_sz[1], pad_sz[0]))
+
+        return dst_pad
