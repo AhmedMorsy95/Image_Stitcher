@@ -139,6 +139,6 @@ class stitcher:
 
         dst_pad[anchorY:anchorY + dst_sz[0], anchorX:anchorX + dst_sz[1]] = self.image2
 
-        # warped = cv2.warpPerspective(self.image2, new_transf, (pad_sz[1], pad_sz[0]))
+        warped = cv2.warpPerspective(self.image2, new_transf, (pad_sz[1], pad_sz[0]))
 
-        return dst_pad
+        return dst_pad, warped
