@@ -48,7 +48,7 @@ class stitcher:
         h1 = h1.reshape(3,3)
         h2, status = cv2.findHomography(np.array(self.first_set_of_points), np.array(self.second_set_of_points), cv2.RANSAC)
         print('Our Matrix\n',h1, '\nOpenCV matrix\n', h2)
-        self.h = h1
+        self.h = h2
 
 
     def detect_keypoints_and_features(self):
@@ -142,3 +142,22 @@ class stitcher:
         warped = cv2.warpPerspective(self.image2, new_transf, (pad_sz[1], pad_sz[0]))
 
         return dst_pad, warped
+
+    def verify_homography(self):
+        (hA, wA) = self.image1.shape[:2]
+
+
+        # construct the new image
+        image = np.zeros((hA, 2*wA, 3), dtype="uint8")
+        image[0:hA, 0:wA] = self.image2
+        image[0:hA, wA:] = self.image2
+
+        for i in range(0,len(self.first_set_of_points)):
+            ptA = (int(self.second_set_of_points[i][0]), int(self.second_set_of_points[i][1]))
+            a = self.first_set_of_points[i][0]
+            b = self.first_set_of_points[i][1]
+            ptB = (int(a*self.h[0][0] + b*self.h[0][1]  + self.h[0][2]) + wA, int(a*self.h[1][0] + b*self.h[1][1]  + self.h[1][2]) )
+            cv2.line(image, ptA, ptB, (0, 255, 255), 2)
+
+        plt.imshow(image)
+        plt.show()
