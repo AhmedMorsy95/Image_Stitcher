@@ -14,6 +14,7 @@ if __name__ == '__main__':
     image_stitcher.calculate_homography_matrix()
     # image_stitcher.verify_homography()
     image_stitcher.wrap()
+    image_stitcher.warp_implemented()
 #     dst_pad, warped = image_stitcher.warp_image_perspective(image_stitcher.h)
 
     # alpha = 0.5
