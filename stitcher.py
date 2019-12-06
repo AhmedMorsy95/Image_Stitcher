@@ -105,6 +105,84 @@ class stitcher:
         result[0:self.image2.shape[0], 0:self.image2.shape[1]] = self.image2
         plt.imshow(result)
         plt.show()
+    def warp_implemented(self):
+        mv1 = []
+        mv2 = []
+        rows = self.image1.shape[0]
+        cols = self.image2.shape[1] + self.image2.shape[1]
+        results = [np.zeros((rows, cols), np.uint8), np.zeros((rows, cols), np.uint8), np.zeros((rows, cols), np.uint8)]
+        mv1 = cv2.split(self.image1, mv1)
+        mv2 = cv2.split(self.image2, mv2)
+        for ii in range(0, 3):
+            self.image1 = mv1[ii]
+            self.image2 = mv2[ii]
+            img1 = self.image1
+            img2 = self.image2
+
+            Hinv = np.linalg.inv(self.h)
+            pixel = np.ones((3, 1))
+            transPix = np.zeros((3, 1), np.float64)
+
+            # print pixel
+            for i in range(0, img1.shape[0]):  # loop on y
+                for j in range(0, img1.shape[1]):  # loop on x
+                    #homogenous coordinates
+                    pixel[0][0] = j
+                    pixel[1][0] = i
+                    pixel[2][0] = 1
+                    #mult with H
+                    transPix = np.dot(self.h, pixel)
+                    #make rightmost buttom element 1
+                    x = transPix[0][0] / transPix[2][0]
+                    y = transPix[1][0] / transPix[2][0]
+                    l = math.floor(x)
+                    k = math.floor(y)
+                    #check if out of region
+                    if (k < results[ii].shape[0] and l < results[ii].shape[1] and k >= 0 and l >= 0):
+                        results[ii][k][l] = img1[i][j]
+                        # fill holes using inverse wrapping
+                        invWrap = np.zeros((3, 1), np.float64)
+                        uprow = np.int(k - 1)
+                        leftcol = np.int(l - 1)
+                        downrow = np.int(k + 1)
+                        rightcol = np.int(l + 1)
+                        print("uprow:")
+                        print(uprow)
+                        print("left col:")
+                        print(leftcol)
+
+                        for r in range(uprow, downrow):
+                            for c in range(leftcol, rightcol):
+                                if (r == k and c == l):
+                                    continue
+                                if (r > 0 and r < results[ii].shape[0] and c > 0 and c < results[ii].shape[1]):
+                                    invWrap[0][0] = c
+                                    invWrap[1][0] = r
+                                    invWrap[2][0] = 1
+                                    invWrap = np.dot(Hinv, invWrap)
+                                    x = int(invWrap[0][0] / invWrap[2][0])
+                                    y = int(invWrap[1][0] / invWrap[2][0])
+
+                                    if (x < img1.shape[1] and y < img1.shape[0]):
+                                        results[ii][r][c] = img1[y][x]
+
+            for i in range(0, img2.shape[0]):
+                for j in range(0, img2.shape[1]):
+                    results[ii][i][j] = img2[i][j]
+            print("channel done")
+
+            for i in range(0, results[ii].shape[0]):
+                for j in range(0, results[ii].shape[1]):
+                    if (results[ii][i][j] == 0):
+                        jj = j
+                        while (jj < results[ii].shape[1] and results[ii][i][jj] == 0):
+                            results[ii][i][jj] = results[ii][i][jj - 1]
+                            jj = jj + 1
+                        j = jj
+
+        res = cv2.merge(results)
+        plt.imshow(res)
+        plt.show()
         
 
     def verify_homography(self):
